@@ -17,6 +17,7 @@ var rootCommand = new RootCommand();
 
 var accessTokenOption = new Option<string>("--accessToken", () => Environment.GetEnvironmentVariable("MASTODON_ACCESS_TOKEN") ?? "", "Access token for Mastodon");
 var hostOption = new Option<string>("--host", () => Environment.GetEnvironmentVariable("MASTODON_HOST") ?? "", "Mastodon host");
+var weightOption = new Option<int>("--weight", () => 5, "Minimum score (number of liked pods) for instances");
 
 var favoritesCmd = new Command("favorites", "Retrieves favorites from mastodon and updates the algorithm profile");
 
@@ -60,6 +61,46 @@ tagsCmd.SetHandler(async (accessToken, host) =>
     await mastodonService.FetchHashtags(processor);
 }, accessTokenOption, hostOption);
 
+
+var fetchTimelinesCmd = new Command("fetch-timelines", "Fetch public timelines from instances");
+
+fetchTimelinesCmd.SetHandler(async (weight) =>
+{
+    var logger = serviceProvider.GetRequiredService<ILogger>();
+
+    var hosts = db.GetMstdInstances(weight);
+
+    var processor = new TimelineProcessor(db);
+
+    foreach (var host  in hosts)
+    {
+        var mastodonService = new MastodonService(host)
+        {
+            Logger = logger
+        };
+
+        try
+        {
+            await mastodonService.GetPublicTimeline(processor, true);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex.Message);
+        }
+
+        try
+        {
+            await mastodonService.GetPublicTimeline(processor, false);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex.Message);
+        }
+    }
+}, weightOption);
+
+
+rootCommand.AddCommand(fetchTimelinesCmd);
 rootCommand.AddCommand(favoritesCmd);
 rootCommand.AddCommand(tagsCmd);
 

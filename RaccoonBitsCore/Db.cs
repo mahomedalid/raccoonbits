@@ -101,5 +101,47 @@ namespace RaccoonBitsCore
             }
         }
 
+        public IList<string> GetMstdInstances(int weight = 2)
+        {
+            IList<string> instances = new List<string>();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // TODO: add an option to skip the original instance
+                string query = $"SELECT * FROM instances WHERE weight > {weight}";
+                
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string host = reader["host"]!.ToString()!;
+                        instances.Add(host);
+                    }
+                }
+            }
+
+            return instances;
+        }
+
+        internal void InsertOrReplacePost(string uri, string content, int wordsScore)
+        {
+            using(var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand(
+                    "INSERT OR IGNORE INTO posts (uri, jsonObject, wordsScore) VALUES (@uri, @jsonObject, @wordsScore)",
+                    connection))
+                {
+                    command.Parameters.AddWithValue("@uri", uri);
+                    command.Parameters.AddWithValue("@jsonObject", content);
+                    command.Parameters.AddWithValue("@wordsScore", wordsScore);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

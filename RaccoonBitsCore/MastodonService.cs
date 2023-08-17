@@ -27,6 +27,24 @@ namespace RaccoonBitsCore
             return $"https://{host}/{endpoint}";
         }
 
+        public async Task GetPublicTimeline(IMastodonApiCallback callback, bool local = true)
+        {
+            using (HttpClient httpClient = new ())
+            {
+                var localQueryParam = local ? "true" : "false";
+                var publicTimelineUrl = GetApiUrl($"api/v1/timelines/public?limit=40&local={localQueryParam}");
+
+                Logger?.LogInformation($"Fetching public timeline from {publicTimelineUrl}");
+
+                HttpResponseMessage response = await httpClient.GetAsync(publicTimelineUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await callback.ProcessResponse(response);
+                }
+            }
+        }
+
         public static Dictionary<string, string> ParseLinkHeader(string linkHeader)
         {
             var links = new Dictionary<string, string>();
