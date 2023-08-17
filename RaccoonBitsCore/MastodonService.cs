@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace RaccoonBitsCore
 {
@@ -7,6 +8,8 @@ namespace RaccoonBitsCore
         private readonly string? accessToken;
 
         private readonly string host;
+
+        public ILogger? Logger { get; set; }
 
         public MastodonService(string host)
         {
@@ -55,7 +58,7 @@ namespace RaccoonBitsCore
                 // avoid issues to overload server, we are not in a hurry
                 Thread.Sleep(5000);
 
-                Console.WriteLine($"Retrieving {currentUrl} ...");
+                Logger?.LogInformation($"Retrieving {currentUrl} ...");
 
                 HttpResponseMessage response = await httpClient.GetAsync(currentUrl);
 
@@ -89,7 +92,7 @@ namespace RaccoonBitsCore
                 }
                 else
                 {
-                    Console.WriteLine($"Error: {response.StatusCode}");
+                    Logger?.LogInformation($"Error: {response.StatusCode}");
                     currentUrl = null; // Error occurred, stop pagination
                 }
             }
@@ -107,7 +110,7 @@ namespace RaccoonBitsCore
             {
                 Thread.Sleep(5000);
 
-                Console.WriteLine($"Retrieving {currentUrl} ...");
+                Logger?.LogInformation($"Retrieving {currentUrl} ...");
 
                 HttpResponseMessage response = await httpClient.GetAsync(currentUrl);
 
@@ -141,7 +144,7 @@ namespace RaccoonBitsCore
                 }
                 else
                 {
-                    Console.WriteLine($"Error: {response.StatusCode}");
+                    Logger?.LogInformation($"Error: {response.StatusCode}");
                     currentUrl = null; // Error occurred, stop pagination
                 }
             }

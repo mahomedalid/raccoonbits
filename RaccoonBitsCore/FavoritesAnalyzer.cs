@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Data.SQLite;
 
 namespace RaccoonBitsCore
@@ -8,6 +9,8 @@ namespace RaccoonBitsCore
         private readonly Db db;
 
         private readonly WeightsProfile weightsProfile;
+
+        public ILogger? Logger { get; set; }
 
         public FavoritesAnalyzer(Db db, WeightsProfile weightsProfile)
         {
@@ -62,7 +65,7 @@ namespace RaccoonBitsCore
                             }
                             else
                             {
-                                Console.WriteLine($"Error parsing: {acct}");
+                                Logger?.LogError($"Error parsing: {acct}");
                             }
 
                             if (!string.IsNullOrWhiteSpace(mstdInstance))
@@ -171,7 +174,7 @@ namespace RaccoonBitsCore
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Logger?.LogError($"An error occurred: {ex.Message}");
             }
         }
     }

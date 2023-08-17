@@ -39,7 +39,6 @@ namespace RaccoonBitsCore
                         connection))
                     {
                         command.ExecuteNonQuery();
-                        Console.WriteLine("Database and table created.");
                     }
 
                     using (var command = new SQLiteCommand(
@@ -47,7 +46,6 @@ namespace RaccoonBitsCore
                         connection))
                     {
                         command.ExecuteNonQuery();
-                        Console.WriteLine("Database and table created.");
                     }
                 }
             }
