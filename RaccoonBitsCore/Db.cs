@@ -143,5 +143,104 @@ namespace RaccoonBitsCore
                 }
             }
         }
+
+        public IEnumerable<Post> GetPosts(string where, IRecordProcessor<Post> processor)
+        {
+            IList<Post> posts = new List<Post>();
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = $"SELECT * FROM posts WHERE {where}";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string uri = reader["uri"]?.ToString() ?? string.Empty;
+                        string jsonObject = reader["jsonObject"]?.ToString() ?? string.Empty;
+
+                        var post = new Post(uri, jsonObject);
+
+                        posts.Add(processor.Process(post));
+                    }
+                }
+            }
+
+            return posts;
+        }
+
+        public void UpdateRankedPost(Post post)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand(
+                    "UPDATE posts SET wordsScore = @wordsScore, hostScore = @hostScore, fameScore = @fameScore, buzzScore = @buzzScore, score = @score WHERE uri = @uri",
+                    connection))
+                {
+                    command.Parameters.AddWithValue("@uri", post.Uri);
+                    command.Parameters.AddWithValue("@fameScore", post.FameScore);
+                    command.Parameters.AddWithValue("@buzzScore", post.BuzzScore);
+                    command.Parameters.AddWithValue("@wordsScore", post.WordsScore);
+                    command.Parameters.AddWithValue("@hostScore", post.HostScore);
+                    command.Parameters.AddWithValue("@score", post.Score);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public Dictionary<string, int> GetHostsRank()
+        {
+            Dictionary<string, int> hostsScoreDictionary = new Dictionary<string, int>();
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT host, weight FROM instances";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string host = reader["host"]?.ToString()!;
+                        int weight = reader?.GetInt32(1) ?? 0;
+                        hostsScoreDictionary[host!] = weight;
+                    }
+                }
+            }
+
+            return hostsScoreDictionary;
+        }
+
+        public Dictionary<string, int> GetWordsRank()
+        {
+            Dictionary<string, int> wordScoreDictionary = new Dictionary<string, int>();
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT word, score FROM wordsRank WHERE length(word) > 2";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string word = reader["word"]?.ToString()!;
+                        int score = reader.GetInt32(1);
+                        wordScoreDictionary[word!] = score;
+                    }
+                }
+            }
+
+            return wordScoreDictionary;
+        }
     }
 }

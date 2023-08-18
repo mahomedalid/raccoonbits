@@ -61,7 +61,6 @@ tagsCmd.SetHandler(async (accessToken, host) =>
     await mastodonService.FetchHashtags(processor);
 }, accessTokenOption, hostOption);
 
-
 var fetchTimelinesCmd = new Command("fetch-timelines", "Fetch public timelines from instances");
 
 fetchTimelinesCmd.SetHandler(async (weight) =>
@@ -98,6 +97,22 @@ fetchTimelinesCmd.SetHandler(async (weight) =>
         }
     }
 }, weightOption);
+
+var rankPosts = new Command("rank-posts", "Rank posts");
+
+rankPosts.SetHandler(() =>
+{
+    var logger = serviceProvider.GetRequiredService<ILogger>();
+
+    var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
+
+    var posts = db.GetPosts("score IS NULL", processor);
+
+    foreach (var post in posts)
+    {
+        db.UpdateRankedPost(post);
+    }
+});
 
 
 rootCommand.AddCommand(fetchTimelinesCmd);
