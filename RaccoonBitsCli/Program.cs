@@ -18,6 +18,8 @@ var rootCommand = new RootCommand();
 var accessTokenOption = new Option<string>("--accessToken", () => Environment.GetEnvironmentVariable("MASTODON_ACCESS_TOKEN") ?? "", "Access token for Mastodon");
 var hostOption = new Option<string>("--host", () => Environment.GetEnvironmentVariable("MASTODON_HOST") ?? "", "Mastodon host");
 var weightOption = new Option<int>("--weight", () => 5, "Minimum score (number of liked pods) for instances");
+var minimumScoreOption = new Option<int>("--words-score", () => 5, "Minimum of words score for ranked posts");
+var limitOption = new Option<int>("--top", () => 5, "Number of top ranked posts to boost");
 
 var favoritesCmd = new Command("favorites", "Retrieves favorites from mastodon and updates the algorithm profile");
 
@@ -114,10 +116,36 @@ rankPosts.SetHandler(() =>
     }
 });
 
+var boosPostsCmd = new Command("boost-posts", "Boost highest ranked posts");
+
+boosPostsCmd.SetHandler(async (accessToken, host, minimumScore, limit) =>
+{
+    var logger = serviceProvider.GetRequiredService<ILogger>();
+
+    var mastodonService = new MastodonService(host, accessToken)
+    {
+        Logger = logger
+    };
+
+    var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
+
+    var where = $"wordsScore > {minimumScore} AND boosted IS NULL ORDER BY score DESC LIMIT {limit}";
+
+    var posts = db.GetPosts(where);
+
+    foreach (var post in posts)
+    {
+        await mastodonService.BoostPost(post);
+        db.MarkPostAsBoosted(post);
+    }
+}, accessTokenOption, hostOption, minimumScoreOption, limitOption);
+
 
 rootCommand.AddCommand(fetchTimelinesCmd);
 rootCommand.AddCommand(favoritesCmd);
 rootCommand.AddCommand(tagsCmd);
+rootCommand.AddCommand(rankPosts);
+rootCommand.AddCommand(boosPostsCmd);
 
 var result = await rootCommand.InvokeAsync(args);
 

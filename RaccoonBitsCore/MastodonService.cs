@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System;
 using System.Text.RegularExpressions;
 
 namespace RaccoonBitsCore
@@ -171,5 +173,42 @@ namespace RaccoonBitsCore
 
         [GeneratedRegex("<([^>]+)>; rel=\"([^\"]+)\"")]
         private static partial Regex RelExtractor();
+
+        public async Task BoostPost(Post post)
+        {
+            Logger?.LogInformation($"Boosting {post.Uri}");
+            var statusUri = System.Web.HttpUtility.UrlEncode(post.Uri);
+
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            // Search for the status you want to boost
+            var searchUrl = GetApiUrl($"api/v2/search?resolve=true&q={statusUri}");
+
+            Logger?.LogInformation($"Searching {searchUrl}");
+
+            var searchResponse = await httpClient.GetAsync(searchUrl);
+            searchResponse.EnsureSuccessStatusCode();
+            var searchResultContent = await searchResponse.Content.ReadAsStringAsync();
+
+            dynamic statusObject = JsonConvert.DeserializeObject(searchResultContent)!;
+
+            if (statusObject.statuses.Count > 0)
+            {
+                var statusId = statusObject.statuses[0].id;
+
+                // Boost the status
+                var boostUrl = GetApiUrl($"api/v1/statuses/{statusId}/reblog");
+
+                Logger?.LogInformation($"Boosting {boostUrl}");
+
+                var boostResponse = await httpClient.PostAsync(boostUrl, null);
+                boostResponse.EnsureSuccessStatusCode();
+            }
+            else
+            {
+                Logger?.LogError($"Error boosting {post.Uri}, probably it was removed");
+            }
+        }
     }
 }

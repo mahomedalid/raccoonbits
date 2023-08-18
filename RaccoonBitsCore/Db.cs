@@ -1,4 +1,5 @@
-﻿using System.Data.SQLite;
+﻿using System;
+using System.Data.SQLite;
 using System.Xml.Linq;
 
 namespace RaccoonBitsCore
@@ -144,7 +145,7 @@ namespace RaccoonBitsCore
             }
         }
 
-        public IEnumerable<Post> GetPosts(string where, IRecordProcessor<Post> processor)
+        public IEnumerable<Post> GetPosts(string where, IRecordProcessor<Post>? processor = null)
         {
             IList<Post> posts = new List<Post>();
 
@@ -164,7 +165,12 @@ namespace RaccoonBitsCore
 
                         var post = new Post(uri, jsonObject);
 
-                        posts.Add(processor.Process(post));
+                        if (processor != null)
+                        {
+                            post = processor.Process(post);
+                        }
+
+                        posts.Add(post);
                     }
                 }
             }
@@ -241,6 +247,22 @@ namespace RaccoonBitsCore
             }
 
             return wordScoreDictionary;
+        }
+
+        public void MarkPostAsBoosted(Post post)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SQLiteCommand(
+                    "UPDATE posts SET boosted = 1 WHERE uri = @uri LIMIT 1",
+                    connection))
+                {
+                    command.Parameters.AddWithValue("@uri", post.Uri!);
+                    command.ExecuteNonQuery();
+                }
+            }
         }
     }
 }
