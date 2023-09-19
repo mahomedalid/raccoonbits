@@ -60,6 +60,8 @@ public class PostRankProcessor : IRecordProcessor<Post>
                 fameScore = 0.01;
             }
         }
+
+        
         
         post.WordsScore = wordsScore;
         post.FameScore = fameScore;
@@ -71,7 +73,7 @@ public class PostRankProcessor : IRecordProcessor<Post>
                         (fameScore * 0.1) +
                         (instanceScore * 0.25)
                     );
-
+        //Console.WriteLine($"{wordsScore} {post.Score}");
         return post;
     }
 

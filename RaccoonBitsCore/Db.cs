@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Data.SQLite;
+using System.Diagnostics;
+using System.Security.Policy;
+using System.Text.Json.Nodes;
 using System.Xml.Linq;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace RaccoonBitsCore
 {
@@ -44,6 +49,20 @@ namespace RaccoonBitsCore
 
                     using (var command = new SQLiteCommand(
                         "CREATE TABLE instances (host string PRIMARY KEY, weight INT)",
+                        connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    using (var command = new SQLiteCommand(
+                        "CREATE TABLE posts(uri string PRIMARY KEY, jsonObject TEXT, wordsScore REAL, fameScore REAL, byzzScore REAL, buzzScore REAL, score REAL, boosted INTEGER, hostScore REAL)",
+                        connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    using (var command = new SQLiteCommand(
+                        "CREATE TABLE wordsRank(word string PRIMARY KEY, score INT)",
                         connection))
                     {
                         command.ExecuteNonQuery();
@@ -180,6 +199,7 @@ namespace RaccoonBitsCore
 
         public void UpdateRankedPost(Post post)
         {
+            
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
@@ -212,7 +232,7 @@ namespace RaccoonBitsCore
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    while (reader.Read())
+                    while (reader?.Read() ?? false)
                     {
                         string host = reader["host"]?.ToString()!;
                         int weight = reader?.GetInt32(1) ?? 0;
@@ -263,6 +283,34 @@ namespace RaccoonBitsCore
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        public IEnumerable<Word> GetWords(string where)
+        {
+            IList<Word> rows = new List<Word>();
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = $"SELECT * FROM wordsRank WHERE {where}";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string word = reader["word"]?.ToString() ?? string.Empty;
+                        int score = int.Parse(reader["score"]?.ToString() ?? "0");
+
+                        var item = new Word(word, score);
+
+                        rows.Add(item);
+                    }
+                }
+            }
+
+            return rows;
         }
     }
 }

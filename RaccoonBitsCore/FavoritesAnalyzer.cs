@@ -153,7 +153,7 @@ namespace RaccoonBitsCore
                             wordScore /= 3;
                         }
 
-                        db.InsertOrReplaceWordScore(kvp.Key, wordScore);
+                        db.InsertOrReplaceWordScore(kvp.Key, (int)wordScore);
                     }
 
                     //  Console.WriteLine("==== Accounts");
