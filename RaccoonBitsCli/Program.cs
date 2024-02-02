@@ -27,7 +27,7 @@ var hostOption = new Option<string>("--host", () => Environment.GetEnvironmentVa
     IsRequired = true,
 };
 
-var weightOption = new Option<int>("--weight", () => 5, "Minimum score (number of liked pods) for instances");
+var weightOption = new Option<int>("--weight", () => 5, "Minimum score (number of liked posts) for instances");
 var minimumScoreOption = new Option<double>("--words-score", () => 0.5, "Minimum of words score for ranked posts");
 var limitOption = new Option<int>("--top", () => 5, "Number of top ranked posts to boost");
 
