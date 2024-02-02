@@ -4,6 +4,12 @@ The algorithm for mastodon - a personalized curated fediverse timeline bot.
 
 The idea that started this project is based on [this blog post](https://www.maho.dev/2023/08/i-miss-the-algorithm-i-want-something-for-my-mastodon/).
 
+I have a bot running with this code that looks like this:
+
+![image](https://github.com/mahomedalid/raccoonbits/assets/952392/682bb902-2f82-4134-bfe4-9d0bf6bf2fe8)
+
+You can follow him here [@raccoonbits](https://techhub.social/@raccoonbits), although it just boost content that **I** like.
+
 ## Goals
 
 On an ideal world with unlimited development resources this project would allow to:
