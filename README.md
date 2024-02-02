@@ -23,7 +23,7 @@ On an ideal world with unlimited development resources this project would allow 
 
 ### MVP
 
-Because we don't like in an ideal world, I made the following design and technical decisions:
+Because we don't live in an ideal world, I made the following design and technical decisions:
 
 1. Do not require any cloud-based service, running locally for now with a command line interface.
 2. All information is stored in local sqlite databases.
