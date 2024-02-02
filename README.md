@@ -159,7 +159,9 @@ Posts that are boosted are marked so they don't boost again. The bot will boost 
 
 I have also found useful to combine both options, to boost posts with very high words more often, but if my bot goes quiet boost more posts to get more content.
 
-## Combining all together
+## Tips and Next Steps
+
+### Combining all together
 
 You may find that running all these commands manually is a hassle, but you can combine all in one script, this is my example for bash, which can be read as:
 
@@ -198,6 +200,18 @@ while true; do
     echo "Sleeping 5 minutes ..."
     sleep 300  # Sleep for 5 minutes (300 seconds)
 ```
+
+I have this script running in a cloud-based virtual machine, but you can also put it in a raspberry-pi, or other local devices.
+
+### How to consume the curated content
+
+Well, the first step is to follow the bot, but if you just leave it there, you may lost its posts in the noise. On the other hand, if you add a notifications alarm, it may be too noisy. The best alternative is to create a List, with only the bot in the list. You can name the list "Curated", or "For You" if you really miss ex-Twitter.
+
+![image](https://github.com/mahomedalid/raccoonbits/assets/952392/64886974-e6f2-4ec9-be00-f56e3ad27b7f)
+
+This way is also less intrusive with yourself, and you can just open the list whenever you need that _algo-fix_.
+
+
 # Contribution
 
 Contributions are welcome! If you have additional samples, improvements, or ideas, please open an issue or submit a pull request. I REALLY NEED HELP.
