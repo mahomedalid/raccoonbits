@@ -17,12 +17,12 @@ var rootCommand = new RootCommand();
 
 var loggerFactory = serviceProvider.GetService<ILoggerFactory>()!;
 
-var accessTokenOption = new Option<string>("--accessToken", () => Environment.GetEnvironmentVariable("MASTODON_ACCESS_TOKEN") ?? "", "Access token for Mastodon")
+var accessTokenOption = new Option<string>("--accessToken", "Access token for Mastodon")
 {
     IsRequired = true,
 };
 
-var hostOption = new Option<string>("--host", () => Environment.GetEnvironmentVariable("MASTODON_HOST") ?? "", "Mastodon host")
+var hostOption = new Option<string>("--host", "Mastodon host")
 {
     IsRequired = true,
 };
