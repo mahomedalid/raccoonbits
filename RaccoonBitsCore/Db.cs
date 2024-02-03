@@ -164,32 +164,39 @@ namespace RaccoonBitsCore
             }
         }
 
-        public IEnumerable<Post> GetPosts(string where, IRecordProcessor<Post>? processor = null)
-        {
+        public IEnumerable<Post> GetPosts(
+            string sql = "SELECT * FROM posts LIMIT 5",
+            IDictionary<string, object>? parameters = null,
+            IRecordProcessor<Post>? processor = null) {
             IList<Post> posts = new List<Post>();
 
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-
-                string query = $"SELECT * FROM posts WHERE {where}";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                
+                using (var command = new SQLiteCommand(sql, connection))
                 {
-                    while (reader.Read())
+                    foreach (var parameter in parameters ?? new Dictionary<string, object>())
                     {
-                        string uri = reader["uri"]?.ToString() ?? string.Empty;
-                        string jsonObject = reader["jsonObject"]?.ToString() ?? string.Empty;
+                        command.Parameters.AddWithValue(parameter.Key, parameter.Value);
+                    }
 
-                        var post = new Post(uri, jsonObject);
-
-                        if (processor != null)
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
                         {
-                            post = processor.Process(post);
-                        }
+                            string uri = reader["uri"]?.ToString() ?? string.Empty;
+                            string jsonObject = reader["jsonObject"]?.ToString() ?? string.Empty;
 
-                        posts.Add(post);
+                            var post = new Post(uri, jsonObject);
+
+                            if (processor != null)
+                            {
+                                post = processor.Process(post);
+                            }
+
+                            posts.Add(post);
+                        }
                     }
                 }
             }

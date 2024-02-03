@@ -120,10 +120,13 @@ rankPosts.SetHandler(() =>
 {
     var logger = loggerFactory.CreateLogger<Program>();
 
+    logger?.LogInformation($"Ranking pending posts");
+
     var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
 
-    //var posts = db.GetPosts("score IS NULL", processor);
-    var posts = db.GetPosts("score IS NULL OR score <= 0", processor);
+    var posts = db.GetPosts("SELECT * FROM posts WHERE score IS NULL", null, processor);
+
+    logger?.LogInformation($"Posts pending to be ranked: {posts.Count()}");
 
     foreach (var post in posts)
     {
@@ -153,11 +156,17 @@ boosPostsCmd.SetHandler(async (accessToken, host, minimumScore, limit) =>
 
         var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
 
-        var where = $"wordsScore > {minimumScore} AND boosted IS NULL ORDER BY score DESC LIMIT {limit}";
-
         logger?.LogInformation($"Getting {limit} posts with score > {minimumScore}");
 
-        var posts = db.GetPosts(where);
+        var sql = "SELECT * FROM posts WHERE wordsScore > @wordsScore AND boosted IS NULL ORDER BY score DESC LIMIT @limit";
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "@wordsScore", minimumScore },
+            { "@limit", limit }
+        };
+        
+        var posts = db.GetPosts(sql, parameters);
 
         logger?.LogInformation($"{posts.Count()} retrieved");
 
@@ -177,7 +186,7 @@ var suggestedTags = new Command("suggested-tags", "Show suggested hashtags to fo
 
 rootCommand.AddCommand(suggestedTags);
 
-suggestedTags.SetHandler(async () =>
+suggestedTags.SetHandler(() =>
 {
     var logger = loggerFactory.CreateLogger<Program>();
 
