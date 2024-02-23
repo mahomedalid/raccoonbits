@@ -38,7 +38,7 @@ jobs:
           release_name="raccoonbits-$tag-${{ matrix.target }}"
 
           # Build everything (--framework netcoreapp3.1)
-          dotnet publish RaccoonBitsCli/RaccoonBitsCli.csproj --runtime "${{ matrix.target }}" -c Release -o "$release_name"
+          dotnet publish RaccoonBitsCli/RaccoonBitsCli.csproj --runtime "${{ matrix.target }}" -c Release -o "$release_name" -p:PublishSingleFile=true
 
           # Pack files
           if [ "${{ matrix.target }}" == "win-x64" ]; then

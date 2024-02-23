@@ -187,9 +187,21 @@ namespace RaccoonBitsCore
                         {
                             string uri = reader["uri"]?.ToString() ?? string.Empty;
                             string jsonObject = reader["jsonObject"]?.ToString() ?? string.Empty;
+                            double score = (double)reader["score"];
+                            double wordsScore = Convert.ToDouble(reader["wordsScore"] ?? 0);
+                            double buzzScore = (double)reader["buzzScore"];
+                            double fameScore =  (double)reader["fameScore"];
+                            double hostScore =  (double)reader["hostScore"];
 
-                            var post = new Post(uri, jsonObject);
-
+                            var post = new Post(uri, jsonObject)
+                            {
+                                Score = score,
+                                WordsScore = wordsScore,
+                                BuzzScore = buzzScore,
+                                FameScore = fameScore,
+                                HostScore = hostScore
+                            };
+                            
                             if (processor != null)
                             {
                                 post = processor.Process(post);
