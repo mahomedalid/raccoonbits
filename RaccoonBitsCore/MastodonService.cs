@@ -180,7 +180,7 @@ namespace RaccoonBitsCore
 
         public async Task BoostPost(Post post)
         {
-            Logger?.LogInformation($"Boosting {post.Uri}");
+            Logger?.LogInformation($"Boosting {post.Uri} - Score: {post.Score} Words: {post.WordsScore} Buzz: {post.BuzzScore} Fame: {post.FameScore} Host: {post.HostScore}");
             var statusUri = System.Web.HttpUtility.UrlEncode(post.Uri);
 
             var httpClient = new HttpClient();
@@ -204,7 +204,7 @@ namespace RaccoonBitsCore
                 // Boost the status
                 var boostUrl = GetApiUrl($"api/v1/statuses/{statusId}/reblog");
 
-                Logger?.LogInformation($"Boosting {boostUrl}");
+                Logger?.LogInformation($"Rebloging {boostUrl}");
 
                 var boostResponse = await httpClient.PostAsync(boostUrl, null);
                 boostResponse.EnsureSuccessStatusCode();
