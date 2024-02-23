@@ -118,7 +118,7 @@ namespace RaccoonBitsCore
             }
         }
 
-        public async Task FetchFavorites(IMastodonApiCallback callback)
+        public async Task FetchFavorites(IMastodonApiCallback callback, int limit = 5)
         {
             using HttpClient httpClient = new();
 
@@ -126,8 +126,12 @@ namespace RaccoonBitsCore
 
             string? currentUrl = GetApiUrl("api/v1/favourites?limit=40");
 
-            while (!string.IsNullOrEmpty(currentUrl))
+            var count = 0;
+
+            // We assume that we want to extract the most recent favourites, since preferences could change
+            while (!string.IsNullOrEmpty(currentUrl) && count++ < limit)
             {
+                // We need to wait to avoid throttling
                 Thread.Sleep(5000);
 
                 Logger?.LogInformation($"Retrieving {currentUrl} ...");

@@ -204,6 +204,23 @@ namespace RaccoonBitsCore
             return posts;
         }
 
+        public void DeleteOldPosts()
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // TODO: add datetime field to posts table
+
+                using (var command = new SQLiteCommand(
+                    "DELETE FROM posts WHERE datetime('now', '-1 day') > datetime(date)",
+                    connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         public void UpdateRankedPost(Post post)
         {
             

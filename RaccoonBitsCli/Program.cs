@@ -28,8 +28,9 @@ var hostOption = new Option<string>("--host", "Mastodon host")
 };
 
 var weightOption = new Option<int>("--weight", () => 5, "Minimum score (number of liked posts) for instances");
-var minimumScoreOption = new Option<double>("--words-score", () => 0.5, "Minimum of words score for ranked posts");
-var limitOption = new Option<int>("--top", () => 5, "Number of top ranked posts to boost");
+var minimumWordsScoreOption = new Option<double>("--words-score", () => 0.3, "Minimum of words score for ranked posts");
+var minimumBuzzScoreOption = new Option<double>("--buzz-score", () => 0.01, "Minimum of buzz score for ranked posts");
+var limitOption = new Option<int>("--top", () => 3, "Number of top ranked posts to boost");
 
 var favoritesCmd = new Command("favorites", "Retrieves favorites from mastodon and updates the algorithm profile");
 
@@ -116,14 +117,25 @@ fetchTimelinesCmd.SetHandler(async (weight) =>
 
 var rankPosts = new Command("rank-posts", "Rank posts");
 
-rankPosts.SetHandler(() =>
+var wordsWeightOption = new Option<double>("--wordsWeight", () => 0.5, "Weight in the algorithm to the words score (decimal between 0 and 1)");
+var buzzWeightOption = new Option<double>("--buzzWeight", () => 0.15, "Weight in the algorithm to the buzz (favorites+boosts) score (decimal between 0 and 1)");
+var fameWeightOption = new Option<double>("--fameWeight", () => 0.1, "Weight in the algorithm to the fame (author followers) weight (decimal between 0 and 1)");
+var instanceWeightOption = new Option<double>("--instanceWeight", () => 0.25, "Weight in the algorithm to the instance rank (how much you have like posts from that instance) (decimal between 0 and 1)");
+
+rankPosts.SetHandler((wordsWeight, buzzWeight, fameWeight, instanceWeight) =>
 {
     var logger = loggerFactory.CreateLogger<Program>();
 
     logger?.LogInformation($"Ranking pending posts");
 
-    var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
-
+    var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank())
+    {
+        WordsWeight = wordsWeight,
+        BuzzWeight = buzzWeight,
+        FameWeight = fameWeight,
+        InstanceWeight = instanceWeight
+    };
+    
     var posts = db.GetPosts("SELECT * FROM posts WHERE score IS NULL", null, processor);
 
     logger?.LogInformation($"Posts pending to be ranked: {posts.Count()}");
@@ -132,16 +144,22 @@ rankPosts.SetHandler(() =>
     {
         db.UpdateRankedPost(post);
     }
-});
+}, wordsWeightOption, buzzWeightOption, fameWeightOption, instanceWeightOption);
+
+rankPosts.AddOption(wordsWeightOption);
+rankPosts.AddOption(buzzWeightOption);
+rankPosts.AddOption(fameWeightOption);
+rankPosts.AddOption(instanceWeightOption);
 
 var boosPostsCmd = new Command("boost-posts", "Boost highest ranked posts");
 
 boosPostsCmd.AddOption(accessTokenOption);
 boosPostsCmd.AddOption(hostOption);
-boosPostsCmd.AddOption(minimumScoreOption);
+boosPostsCmd.AddOption(minimumWordsScoreOption);
+boosPostsCmd.AddOption(minimumBuzzScoreOption);
 boosPostsCmd.AddOption(limitOption);
 
-boosPostsCmd.SetHandler(async (accessToken, host, minimumScore, limit) =>
+boosPostsCmd.SetHandler(async (accessToken, host, minimumWordsScore, minimumBuzzScore, limit) =>
 {
     var logger = loggerFactory.CreateLogger<Program>();
 
@@ -156,13 +174,14 @@ boosPostsCmd.SetHandler(async (accessToken, host, minimumScore, limit) =>
 
         var processor = new PostRankProcessor(db.GetWordsRank(), db.GetHostsRank());
 
-        logger?.LogInformation($"Getting {limit} posts with score > {minimumScore}");
+        logger?.LogInformation($"Getting {limit} posts with score > {minimumWordsScore} and buzz > {minimumBuzzScore}");
 
-        var sql = "SELECT * FROM posts WHERE wordsScore > @wordsScore AND boosted IS NULL ORDER BY score DESC LIMIT @limit";
+        var sql = "SELECT * FROM posts WHERE wordsScore > @wordsScore AND buzzScore > @buzzScore AND boosted IS NULL ORDER BY score DESC LIMIT @limit";
 
         var parameters = new Dictionary<string, object>
         {
-            { "@wordsScore", minimumScore },
+            { "@wordsScore", minimumWordsScore },
+            { "@buzzScore", minimumBuzzScore },
             { "@limit", limit }
         };
         
@@ -180,7 +199,7 @@ boosPostsCmd.SetHandler(async (accessToken, host, minimumScore, limit) =>
         logger?.LogCritical(ex.ToString());
     }
    
-}, accessTokenOption, hostOption, minimumScoreOption, limitOption);
+}, accessTokenOption, hostOption, minimumWordsScoreOption, minimumBuzzScoreOption, limitOption);
 
 var suggestedTags = new Command("suggested-tags", "Show suggested hashtags to follow");
 

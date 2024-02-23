@@ -13,6 +13,14 @@ public class PostRankProcessor : IRecordProcessor<Post>
 
     public bool PenalizeBots { get; set; } = true;
 
+    public double WordsWeight { get; set; } = 0.5;
+
+    public double BuzzWeight { get; set; } = 0.15;
+
+    public double FameWeight { get; set; } = 0.1;
+
+    public double InstanceWeight { get; set; } = 0.25;
+
     public PostRankProcessor(Dictionary<string, int> wordsRank, Dictionary<string, int> hostsRank)
     {
         this.WordsRank = wordsRank;
@@ -60,18 +68,16 @@ public class PostRankProcessor : IRecordProcessor<Post>
                 fameScore = 0.01;
             }
         }
-
-        
         
         post.WordsScore = wordsScore;
         post.FameScore = fameScore;
         post.BuzzScore = buzzScoreNormalized;
         post.HostScore = instanceScore;
         post.Score = (double)(
-                        (wordsScore * 0.50) +
-                        (buzzScoreNormalized * 0.15) +
-                        (fameScore * 0.1) +
-                        (instanceScore * 0.25)
+                        (wordsScore * WordsWeight) +
+                        (buzzScoreNormalized * BuzzWeight) +
+                        (fameScore * FameWeight) +
+                        (instanceScore * InstanceWeight)
                     );
         //Console.WriteLine($"{wordsScore} {post.Score}");
         return post;
