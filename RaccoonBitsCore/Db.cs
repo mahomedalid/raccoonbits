@@ -55,7 +55,7 @@ namespace RaccoonBitsCore
                     }
 
                     using (var command = new SQLiteCommand(
-                        "CREATE TABLE posts(uri string PRIMARY KEY, jsonObject TEXT, wordsScore REAL, fameScore REAL, byzzScore REAL, buzzScore REAL, score REAL, boosted INTEGER, hostScore REAL)",
+                        "CREATE TABLE posts(uri string PRIMARY KEY, jsonObject TEXT, wordsScore REAL, fameScore REAL, byzzScore REAL, buzzScore REAL, score REAL, boosted INTEGER, hostScore REAL, published_at INTEGER)",
                         connection))
                     {
                         command.ExecuteNonQuery();

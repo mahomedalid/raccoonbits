@@ -1,4 +1,5 @@
 ﻿using RaccoonBitsCore;
+using System.IO;
 using System.CommandLine.Parsing;
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
@@ -239,6 +240,12 @@ static void ConfigureServices(ServiceCollection serviceCollection, string[] args
                 configure.SetMinimumLevel(LogLevel.Debug);
             }
         })
-        .AddSingleton((sp) => new Db("myprofile.db"))
+        .AddSingleton((sp) => 
+        {
+            string currentDirectory = Directory.GetCurrentDirectory();
+            string filePath = Path.Combine(currentDirectory, "myprofile.db");
+
+            return new Db(filePath);
+        })
         .AddSingleton((sp) => new WeightsProfile());
 }
