@@ -187,21 +187,34 @@ namespace RaccoonBitsCore
                         {
                             string uri = reader["uri"]?.ToString() ?? string.Empty;
                             string jsonObject = reader["jsonObject"]?.ToString() ?? string.Empty;
-                            double score = Convert.ToDouble(reader["score"]?.ToString() ?? "0");
-                            double wordsScore = Convert.ToDouble(reader["wordsScore"]?.ToString() ?? "0");
-                            double buzzScore = Convert.ToDouble(reader["buzzScore"]?.ToString() ?? "0");
-                            double fameScore = Convert.ToDouble(reader["fameScore"]?.ToString() ?? "0");
-                            double hostScore = Convert.ToDouble(reader["hostScore"]?.ToString() ?? "0");
 
-                            var post = new Post(uri, jsonObject)
+                            var post = new Post(uri, jsonObject);
+                            
+                            if (!string.IsNullOrEmpty(reader["score"]?.ToString()))
                             {
-                                Score = score,
-                                WordsScore = wordsScore,
-                                BuzzScore = buzzScore,
-                                FameScore = fameScore,
-                                HostScore = hostScore
-                            };
+                                post.Score = Convert.ToDouble(reader["score"]?.ToString() ?? "0");
+                            }
 
+                            if (!string.IsNullOrEmpty(reader["wordsScore"]?.ToString()))
+                            {
+                                post.WordsScore = Convert.ToDouble(reader["wordsScore"]?.ToString() ?? "0");
+                            }
+
+                            if (!string.IsNullOrEmpty(reader["buzzScore"]?.ToString()))
+                            {
+                                post.BuzzScore = Convert.ToDouble(reader["buzzScore"]?.ToString() ?? "0");
+                            }
+
+                            if (!string.IsNullOrEmpty(reader["fameScore"]?.ToString()))
+                            {
+                                post.FameScore = Convert.ToDouble(reader["fameScore"]?.ToString() ?? "0");
+                            }
+
+                            if (!string.IsNullOrEmpty(reader["hostScore"]?.ToString()))
+                            {
+                                post.HostScore = Convert.ToDouble(reader["hostScore"]?.ToString() ?? "0");
+                            }
+                            
                             if (processor != null)
                             {
                                 post = processor.Process(post);
